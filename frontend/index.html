@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revenue Recovery Dashboard</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0d0d0d; color: #ffffff; margin: 0; padding: 0; }
+        /* Custom Colors */
+        .bg-sidebar { background-color: #1a1a1a; }
+        .bg-dark-panel { background-color: #161616; }
+        .bg-card { background-color: #1e1e1e; }
+        .text-faint { color: #d1d5db; }
+        /* Fix for select dropdown arrow in dark mode */
+        select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; }
+    </style>
+</head>
+<body class="flex min-h-screen">
+
+    <!-- Sidebar -->
+    <div class="w-64 bg-sidebar text-white flex flex-col fixed left-0 top-0 bottom-0 shadow-lg z-10">
+        <div class="p-6 pt-8 pb-4">
+            <h1 class="font-bold text-lg text-gray-100 tracking-wide">Revenue recovery</h1>
+        </div>
+        <nav class="flex-1 px-3 space-y-1 mt-2">
+            <!-- Active Item -->
+            <a href="#" id="nav-overview" onclick="switchTab('overview', event)" class="flex items-center px-4 py-3 bg-[#383838] text-white rounded-lg shadow-sm">
+                <svg class="w-5 h-5 mr-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                <span class="font-medium text-[15px]">Overview</span>
+            </a>
+            <a href="#" id="nav-audit-trail" onclick="switchTab('audit-trail', event)" class="flex items-center px-4 py-3 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-lg transition-colors">
+                <svg class="w-5 h-5 mr-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                <span class="text-[15px]">Audit trail</span>
+            </a>
+            <a href="#" id="nav-guardrails" onclick="switchTab('guardrails', event)" class="flex items-center px-4 py-3 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-lg transition-colors">
+                <svg class="w-5 h-5 mr-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                <span class="text-[15px]">Guardrails</span>
+            </a>
+            <a href="#" id="nav-emails" onclick="switchTab('emails', event)" class="flex items-center px-4 py-3 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-lg transition-colors">
+                <svg class="w-5 h-5 mr-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                <span class="text-[15px]">Email Notifications</span>
+            </a>
+            <a href="#" id="nav-pipeline" onclick="switchTab('pipeline', event)" class="flex items-center px-4 py-3 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-lg transition-colors">
+                <svg class="w-5 h-5 mr-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                <span class="text-[15px]">Pipeline</span>
+            </a>
+            <a href="#" id="nav-datasources" onclick="switchTab('datasources', event)" class="flex items-center px-4 py-3 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-lg transition-colors">
+                <svg class="w-5 h-5 mr-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+                <span class="text-[15px]">Data sources</span>
+            </a>
+            <a href="#" id="nav-settings" onclick="switchTab('settings', event)" class="flex items-center px-4 py-3 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-lg transition-colors">
+                <svg class="w-5 h-5 mr-3 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                <span class="text-[15px]">Settings</span>
+            </a>
+        </nav>
+        <div class="p-6 text-green-600 font-medium text-[15px] mt-auto tracking-wide">
+            Agent active
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="ml-64 p-10 w-full min-h-screen bg-[#0d0d0d]">
+        
+        <!-- Overview Tab -->
+        <div id="tab-overview">
+            <!-- Top Flow Bar -->
+            <div class="bg-dark-panel rounded-xl p-4 flex items-center mb-10 w-full max-w-5xl shadow-sm border border-[#2a2a2a]">
+                <!-- Log -->
+                <button class="bg-[#0b213f] hover:bg-[#153b6b] transition-colors text-[#60a5fa] px-4 py-1.5 rounded-full text-[14px] font-medium flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Log
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+                <span class="text-gray-600 mx-3"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></span>
+                
+                <!-- Gemini Diagnosis -->
+                <button class="bg-[#2e1065] hover:bg-[#43178c] transition-colors text-[#a78bfa] px-4 py-1.5 rounded-full text-[14px] font-medium flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    Gemini diagnosis
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+                <span class="text-gray-600 mx-3"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></span>
+                
+                <!-- Guardrail Policy -->
+                <button class="bg-[#422006] hover:bg-[#5c2d08] transition-colors text-[#fbbf24] px-4 py-1.5 rounded-full text-[14px] font-medium flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                    Guardrail policy
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+                <span class="text-gray-600 mx-3"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></span>
+                
+                <!-- Action -->
+                <button class="bg-[#052e16] hover:bg-[#0a4d27] transition-colors text-[#22c55e] px-4 py-1.5 rounded-full text-[14px] font-medium focus:outline-none focus:ring-2 focus:ring-green-500">
+                    Action
+                </button>
+            </div>
+
+            <!-- Metric Cards -->
+            <div class="grid grid-cols-4 gap-6 mb-12 max-w-5xl">
+                <!-- Card 1 -->
+                <div class="bg-card hover:bg-[#252525] hover:-translate-y-1 transition-all cursor-pointer p-6 rounded-2xl shadow-sm border border-[#2a2a2a] flex flex-col justify-center min-h-[140px]">
+                    <h3 class="text-gray-300 text-[15px] mb-2 font-medium">Money at risk</h3>
+                    <div class="text-[34px] font-semibold text-[#f87171] tracking-tight">₹3,52,300</div>
+                </div>
+                <!-- Card 2 -->
+                <div class="bg-card hover:bg-[#252525] hover:-translate-y-1 transition-all cursor-pointer p-6 rounded-2xl shadow-sm border border-[#2a2a2a] flex flex-col justify-center min-h-[140px]">
+                    <h3 class="text-gray-300 text-[15px] mb-2 font-medium">Recovered</h3>
+                    <div class="text-[34px] font-semibold text-[#4ade80] tracking-tight">₹1,43,100</div>
+                </div>
+                <!-- Card 3 -->
+                <div class="bg-card hover:bg-[#252525] hover:-translate-y-1 transition-all cursor-pointer p-6 rounded-2xl shadow-sm border border-[#2a2a2a] flex flex-col justify-center min-h-[140px]">
+                    <h3 class="text-gray-300 text-[15px] mb-2 font-medium">Recovery rate</h3>
+                    <div class="text-[34px] font-semibold text-[#60a5fa] tracking-tight">40.6%</div>
+                </div>
+                <!-- Card 4 -->
+                <div class="bg-card hover:bg-[#252525] hover:-translate-y-1 transition-all cursor-pointer p-6 rounded-2xl shadow-sm border border-[#2a2a2a] flex flex-col justify-center min-h-[140px]">
+                    <h3 class="text-gray-300 text-[15px] mb-2 font-medium">Guardrail halts</h3>
+                    <div class="text-[34px] font-semibold text-[#fbbf24] tracking-tight">8</div>
+                </div>
+            </div>
+
+            <!-- Preview List Section in Overview -->
+            <div class="max-w-5xl">
+                <div class="flex items-center justify-between mb-6">
+                    <p class="text-gray-400 text-[15px] font-medium">Recent Activity</p>
+                    <button onclick="switchTab('audit-trail', event)" class="text-[#60a5fa] hover:text-blue-400 text-[14px] font-medium">View full Audit Trail →</button>
+                </div>
+                <div class="bg-[#161616] rounded-xl border border-[#2a2a2a] p-8 text-center">
+                    <p class="text-gray-400">Click on Audit Trail in the sidebar to view full transaction history and filters.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audit Trail Tab -->
+        <div id="tab-audit-trail" class="hidden">
+            <div class="max-w-5xl mb-8 flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-100 tracking-tight">Audit Trail</h2>
+                    <p class="text-gray-400 text-[14px] mt-1">Review AI decisions and guardrail interventions</p>
+                </div>
+            </div>
+
+            <!-- Filters Bar -->
+            <div class="max-w-5xl flex flex-wrap items-center gap-4 mb-8 bg-[#161616] p-4 rounded-xl border border-[#2a2a2a] shadow-sm">
+                <!-- Search -->
+                <div class="flex-1 min-w-[200px] relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" id="search-filter" placeholder="Search by TXN ID or Customer..." class="w-full bg-[#0d0d0d] border border-[#333] rounded-lg pl-10 pr-4 py-2 text-sm text-gray-200 focus:outline-none focus:border-blue-500 placeholder-gray-500 transition-colors">
+                </div>
+                <!-- Status Filter -->
+                <div class="w-48">
+                    <select id="status-filter" class="w-full bg-[#0d0d0d] border border-[#333] rounded-lg px-4 py-2 text-sm text-gray-200 focus:outline-none focus:border-blue-500 appearance-none cursor-pointer hover:border-gray-600 transition-colors">
+                        <option value="">Status: All</option>
+                        <option value="recovered">Recovered</option>
+                        <option value="abandoned">Abandoned</option>
+                        <option value="blocked">Blocked</option>
+                    </select>
+                </div>
+                <!-- Diagnosis Filter -->
+                <div class="w-56">
+                    <select id="diagnosis-filter" class="w-full bg-[#0d0d0d] border border-[#333] rounded-lg px-4 py-2 text-sm text-gray-200 focus:outline-none focus:border-blue-500 appearance-none cursor-pointer hover:border-gray-600 transition-colors">
+                        <option value="">Diagnosis: All Categories</option>
+                        <option value="timeout">bank timeout</option>
+                        <option value="fraud">fraud risk</option>
+                        <option value="nsf">insufficient funds</option>
+                    </select>
+                </div>
+                <!-- Date Range -->
+                <div class="w-48">
+                    <select id="date-filter" class="w-full bg-[#0d0d0d] border border-[#333] rounded-lg px-4 py-2 text-sm text-gray-200 focus:outline-none focus:border-blue-500 appearance-none cursor-pointer hover:border-gray-600 transition-colors">
+                        <option value="24h">Last 24 hours</option>
+                        <option value="7d">Last 7 days</option>
+                        <option value="30d">Last 30 days</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- List Section -->
+            <div class="max-w-5xl">
+                <!-- Table Header -->
+                <div class="grid grid-cols-12 gap-4 text-gray-500 text-[12px] uppercase tracking-wider font-semibold mb-3 px-4">
+                    <div class="col-span-2">Transaction</div>
+                    <div class="col-span-2">Customer</div>
+                    <div class="col-span-2">Amount</div>
+                    <div class="col-span-3">Diagnosis</div>
+                    <div class="col-span-3 text-right pr-6">Outcome</div>
+                </div>
+
+                <div id="transactions-container" class="flex flex-col gap-3">
+                    <!-- Dynamic transactions will be rendered here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Guardrails Tab -->
+        <div id="tab-guardrails" class="hidden">
+            <div class="max-w-6xl">
+                <h2 class="text-2xl font-bold text-gray-100 tracking-tight mb-6">Guardrails & Safety Constraints</h2>
+                
+                <!-- Top Summary Strip -->
+                <div class="bg-[#161616] border border-[#2a2a2a] rounded-xl p-6 mb-8 flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-8">
+                        <div>
+                            <p class="text-gray-400 text-sm font-medium mb-1">Total Interventions</p>
+                            <div class="text-3xl font-bold text-[#fbbf24]"><span id="guardrail-total-halts">0</span> <span class="text-lg font-medium text-gray-500">halts today</span></div>
+                        </div>
+                        <div class="h-12 w-px bg-[#333]"></div>
+                        <div>
+                            <p class="text-gray-400 text-sm font-medium mb-1">Breakdown</p>
+                            <div class="flex gap-4 text-sm font-medium">
+                                <span class="text-[#f87171]"><span id="guardrail-fraud-halts">0</span> Fraud holds</span>
+                                <span class="text-[#60a5fa]"><span id="guardrail-timeout-halts">0</span> Timeout halts</span>
+                                <span class="text-gray-400"><span id="guardrail-other-halts">0</span> Other</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="inline-flex items-center gap-2 bg-[#052e16] text-[#22c55e] px-4 py-2 rounded-lg font-medium text-sm border border-[#0a4d27]">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            0 double-charge incidents &middot; 0 policy overrides
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-8">
+                    <!-- Left Column: Active Rules (2/3 width) -->
+                    <div class="col-span-2 space-y-6">
+                        <h3 class="text-lg font-semibold text-gray-200 border-b border-[#2a2a2a] pb-2">Active Guardrail Policies</h3>
+                        
+                        <div class="space-y-4">
+                            <!-- Rule 1 -->
+                            <div class="bg-[#161616] border border-[#2a2a2a] rounded-xl p-5 flex items-start gap-4 hover:border-[#333] transition-colors">
+                                <div class="bg-[#2e1065] p-2 rounded-lg text-[#a78bfa] shrink-0 mt-1">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <h4 class="font-semibold text-gray-200">Max retry limit</h4>
+                                        <span class="bg-[#1a1a1a] text-gray-400 text-xs px-2 py-1 rounded font-mono border border-[#333]">ACTIVE</span>
+                                    </div>
+                                    <p class="text-gray-400 text-sm mb-2">Stop after 3 automated retry attempts per transaction, cooldown 24h between attempts.</p>
+                                    <p class="text-[#fbbf24] text-xs font-medium uppercase tracking-wider">Prevents: Customer spam / Rate limits</p>
+                                </div>
+                            </div>
+                            <!-- Rule 2 -->
+                            <div class="bg-[#161616] border border-[#2a2a2a] rounded-xl p-5 flex items-start gap-4 hover:border-[#333] transition-colors">
+                                <div class="bg-[#450a0a] p-2 rounded-lg text-[#f87171] shrink-0 mt-1">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <h4 class="font-semibold text-gray-200">Fraud velocity halt</h4>
+                                        <span class="bg-[#1a1a1a] text-gray-400 text-xs px-2 py-1 rounded font-mono border border-[#333]">ACTIVE</span>
+                                    </div>
+                                    <p class="text-gray-400 text-sm mb-2">Block all automated contact if velocity check flags high risk — routes to human review only.</p>
+                                    <p class="text-[#f87171] text-xs font-medium uppercase tracking-wider">Prevents: Fraud escalation</p>
+                                </div>
+                            </div>
+                            <!-- Rule 3 -->
+                            <div class="bg-[#161616] border border-[#2a2a2a] rounded-xl p-5 flex items-start gap-4 hover:border-[#333] transition-colors">
+                                <div class="bg-[#0b213f] p-2 rounded-lg text-[#60a5fa] shrink-0 mt-1">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <h4 class="font-semibold text-gray-200">Spend/action ceiling</h4>
+                                        <span class="bg-[#1a1a1a] text-gray-400 text-xs px-2 py-1 rounded font-mono border border-[#333]">ACTIVE</span>
+                                    </div>
+                                    <p class="text-gray-400 text-sm mb-2">AI cannot authorize refunds or discounts above ₹X without human approval.</p>
+                                    <p class="text-[#60a5fa] text-xs font-medium uppercase tracking-wider">Prevents: Unauthorized financial loss</p>
+                                </div>
+                            </div>
+                            <!-- Rule 4 -->
+                            <div class="bg-[#161616] border border-[#2a2a2a] rounded-xl p-5 flex items-start gap-4 hover:border-[#333] transition-colors">
+                                <div class="bg-[#0f2824] p-2 rounded-lg text-[#2dd4bf] shrink-0 mt-1">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03-8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <h4 class="font-semibold text-gray-200">Consent/contact caps</h4>
+                                        <span class="bg-[#1a1a1a] text-gray-400 text-xs px-2 py-1 rounded font-mono border border-[#333]">ACTIVE</span>
+                                    </div>
+                                    <p class="text-gray-400 text-sm mb-2">Max 2 reminder messages per customer per failure event, respecting DND/opt-out.</p>
+                                    <p class="text-[#2dd4bf] text-xs font-medium uppercase tracking-wider">Prevents: Compliance violations</p>
+                                </div>
+                            </div>
+                            <!-- Rule 5 -->
+                            <div class="bg-[#161616] border border-[#2a2a2a] rounded-xl p-5 flex items-start gap-4 hover:border-[#333] transition-colors">
+                                <div class="bg-[#422006] p-2 rounded-lg text-[#fbbf24] shrink-0 mt-1">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <h4 class="font-semibold text-gray-200">Idempotency lock</h4>
+                                        <span class="bg-[#1a1a1a] text-gray-400 text-xs px-2 py-1 rounded font-mono border border-[#333]">ACTIVE</span>
+                                    </div>
+                                    <p class="text-gray-400 text-sm mb-2">Every retry action is tagged with an idempotency key — guarantees no duplicate charge even under system failure.</p>
+                                    <p class="text-[#fbbf24] text-xs font-medium uppercase tracking-wider">Prevents: Double charging</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent interventions feed -->
+                        <div class="mt-8">
+                            <h3 class="text-lg font-semibold text-gray-200 border-b border-[#2a2a2a] pb-2 mb-4">Recent Interventions</h3>
+                            <div id="guardrail-feed" class="space-y-3">
+                                <!-- Populated dynamically by script.js -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="col-span-1 space-y-8">
+                        
+                        <!-- Explicit "AI cannot do X" list -->
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-200 border-b border-[#2a2a2a] pb-2 mb-4">Hard Boundaries</h3>
+                            <div class="bg-[#111] border border-red-900/30 rounded-xl p-5 space-y-4 shadow-inner">
+                                <div class="flex items-start gap-3 text-sm text-gray-300">
+                                    <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                                    <span class="leading-relaxed">Cannot execute a charge or refund directly</span>
+                                </div>
+                                <div class="flex items-start gap-3 text-sm text-gray-300">
+                                    <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                                    <span class="leading-relaxed">Cannot exceed retry/contact caps</span>
+                                </div>
+                                <div class="flex items-start gap-3 text-sm text-gray-300">
+                                    <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                                    <span class="leading-relaxed">Cannot act on fraud-flagged transactions</span>
+                                </div>
+                                <div class="flex items-start gap-3 text-sm text-gray-300">
+                                    <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
+                                    <span class="leading-relaxed">Cannot override a guardrail decision</span>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pipeline Tab -->
+        <div id="tab-pipeline" class="hidden">
+            <div class="max-w-6xl">
+                <h2 class="text-2xl font-bold text-gray-100 tracking-tight mb-2">Architecture Pipeline</h2>
+                <p class="text-gray-400 text-[14px] mb-10">Data flow from raw trigger to final audit log</p>
+
+                <!-- Legend / Zones -->
+                <div class="flex items-center gap-6 mb-6">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-[#1e293b] border border-[#3b82f6] rounded"></div>
+                        <span class="text-sm text-gray-300 font-medium">AI Zone (Probabilistic)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-[#1c1917] border border-[#f59e0b] rounded"></div>
+                        <span class="text-sm text-gray-300 font-medium">Deterministic Zone</span>
+                    </div>
+                </div>
+
+                <div class="bg-[#111] border border-[#2a2a2a] rounded-xl p-8 shadow-sm">
+                    <div class="flex flex-col items-center space-y-16 pb-4 pt-10">
+                        
+                        <!-- Row 1 -->
+                        <div class="flex items-start justify-center gap-4">
+                            <!-- Stage 1 -->
+                            <div class="flex flex-col items-center w-40 shrink-0 cursor-pointer group transition-all duration-300" onclick="revealNextStage(2)">
+                                <div class="bg-[#1a1a1a] border border-[#333] p-4 rounded-lg w-full text-center h-28 flex flex-col justify-center relative z-10 shadow-lg group-hover:border-gray-400 group-hover:scale-105 transition-all">
+                                    <h4 class="font-bold text-gray-200 text-sm">Transaction Event</h4>
+                                    <p class="text-[10px] text-gray-500 mt-2 font-mono uppercase">Stripe Webhook</p>
+                                </div>
+                                <div class="mt-4 bg-[#161616] border border-[#2a2a2a] px-3 py-1 rounded text-xs text-gray-400 font-mono shadow-inner"><span id="pipe-total">0</span> events</div>
+                                <div class="text-[10px] text-gray-500 mt-2 animate-pulse">Click to advance</div>
+                            </div>
+
+                            <!-- Arrow 2 -->
+                            <div id="pipe-arrow-2" class="flex items-center h-28 text-[#444] shrink-0 opacity-0 transition-opacity duration-500">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                            </div>
+
+                            <!-- Stage 2 -->
+                            <div id="pipe-stage-2" class="flex flex-col items-center w-40 shrink-0 cursor-pointer group opacity-0 transition-all duration-500" onclick="revealNextStage(3)">
+                                <div class="bg-[#1a1a1a] border border-[#333] p-4 rounded-lg w-full text-center h-28 flex flex-col justify-center relative z-10 shadow-lg group-hover:border-gray-400 group-hover:scale-105 transition-all">
+                                    <h4 class="font-bold text-gray-200 text-sm">Log Ingestion</h4>
+                                    <p class="text-[10px] text-gray-500 mt-2 font-mono uppercase">MySQL DB</p>
+                                </div>
+                                <div class="mt-4 bg-[#161616] border border-[#2a2a2a] px-3 py-1 rounded text-xs text-gray-400 font-mono shadow-inner"><span id="pipe-ingested">0</span> pulled</div>
+                            </div>
+
+                            <!-- Arrow 3 -->
+                            <div id="pipe-arrow-3" class="flex items-center h-28 text-[#444] shrink-0 opacity-0 transition-opacity duration-500">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                            </div>
+
+                            <!-- Stage 3 (AI) wrapped in relative container for vertical arrow -->
+                            <div class="relative">
+                                <div id="pipe-stage-3" class="flex flex-col items-center w-40 shrink-0 relative cursor-pointer group opacity-0 transition-all duration-500" onclick="revealNextStage(4)">
+                                    <div class="bg-[#1e293b] border border-[#3b82f6] p-4 rounded-lg w-full text-center h-28 flex flex-col justify-center relative z-10 shadow-[0_0_15px_rgba(59,130,246,0.15)] group-hover:border-[#60a5fa] group-hover:scale-105 transition-all">
+                                        <h4 class="font-bold text-white text-sm">Gemini Diagnosis</h4>
+                                        <p class="text-[10px] text-[#93c5fd] mt-2 font-mono uppercase">Gemini 2.x API</p>
+                                    </div>
+                                    <div class="mt-4 bg-[#0f172a] border border-[#1e293b] px-3 py-1 rounded text-xs text-[#93c5fd] font-mono shadow-inner"><span id="pipe-diagnosed">0</span> diagnosed</div>
+                                    
+                                    <!-- Failure Branch (Upwards) -->
+                                    <div class="absolute -top-8 left-1/2 w-0.5 h-8 bg-red-900/50 transform -translate-x-1/2"></div>
+                                    <div class="absolute -top-14 left-1/2 transform -translate-x-1/2">
+                                        <div class="bg-[#2a1313] border border-red-900/50 px-3 py-1.5 rounded text-[11px] text-red-400 w-36 text-center shadow-lg whitespace-nowrap">API Error &rarr; Manual Queue</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Arrow 4 (Down) -->
+                                <div id="pipe-arrow-4" class="absolute -bottom-16 left-0 w-full h-16 flex items-center justify-center text-[#444] opacity-0 transition-opacity duration-500">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m0 0l-5-5m5 5l5-5"></path></svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 2 -->
+                        <div class="flex items-start justify-center flex-row-reverse gap-4">
+                            <!-- Stage 4 (Rules) -->
+                            <div id="pipe-stage-4" class="flex flex-col items-center w-40 shrink-0 cursor-pointer group opacity-0 transition-all duration-500" onclick="revealNextStage(5)">
+                                <div class="bg-[#1c1917] border border-[#f59e0b] p-4 rounded-lg w-full text-center h-28 flex flex-col justify-center relative z-10 shadow-[0_0_15px_rgba(245,158,11,0.1)] group-hover:border-[#fbbf24] group-hover:scale-105 transition-all">
+                                    <h4 class="font-bold text-white text-sm">Policy Engine</h4>
+                                    <p class="text-[10px] text-[#fcd34d] mt-2 font-mono uppercase">Python Rules</p>
+                                </div>
+                                <div class="mt-4 bg-[#291e12] border border-[#f59e0b]/30 px-3 py-1 rounded text-xs text-[#fcd34d] font-mono shadow-inner"><span id="pipe-blocked">0</span> blocked</div>
+                            </div>
+
+                            <!-- Arrow 5 (Left) -->
+                            <div id="pipe-arrow-5" class="flex items-center h-28 text-[#444] shrink-0 opacity-0 transition-opacity duration-500">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                            </div>
+
+                            <!-- Stage 5 -->
+                            <div id="pipe-stage-5" class="flex flex-col items-center w-40 shrink-0 cursor-pointer group opacity-0 transition-all duration-500" onclick="revealNextStage(6)">
+                                <div class="bg-[#1a1a1a] border border-[#333] p-4 rounded-lg w-full text-center h-28 flex flex-col justify-center relative z-10 shadow-lg group-hover:border-gray-400 group-hover:scale-105 transition-all">
+                                    <h4 class="font-bold text-gray-200 text-sm">Action Dispatch</h4>
+                                    <p class="text-[10px] text-gray-500 mt-2 font-mono uppercase">Internal API</p>
+                                </div>
+                                <div class="mt-4 bg-[#161616] border border-[#2a2a2a] px-3 py-1 rounded text-xs text-[#22c55e] font-mono shadow-inner"><span id="pipe-actioned">0</span> actioned</div>
+                            </div>
+
+                            <!-- Arrow 6 (Left) -->
+                            <div id="pipe-arrow-6" class="flex items-center h-28 text-[#444] shrink-0 opacity-0 transition-opacity duration-500">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                            </div>
+
+                            <!-- Stage 6 -->
+                            <div id="pipe-stage-6" class="flex flex-col items-center w-40 shrink-0 group opacity-0 transition-all duration-500">
+                                <div class="bg-[#1a1a1a] border border-[#333] p-4 rounded-lg w-full text-center h-28 flex flex-col justify-center relative z-10 shadow-lg group-hover:border-gray-400 group-hover:scale-105 transition-all">
+                                    <h4 class="font-bold text-gray-200 text-sm">Audit Log Write</h4>
+                                    <p class="text-[10px] text-gray-500 mt-2 font-mono uppercase">MySQL DB</p>
+                                </div>
+                                <div class="mt-4 bg-[#161616] border border-[#2a2a2a] px-3 py-1 rounded text-xs text-gray-400 font-mono shadow-inner"><span id="pipe-logged">0</span> logged</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Email Notifications Tab -->
+        <div id="tab-emails" class="hidden">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold tracking-tight">Email Dispatch Center</h2>
+                <p class="text-gray-400 mt-2 text-[15px]">Audit log of all automated customer recovery communications</p>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-6 mb-8">
+                <div class="bg-[#111] border border-[#2a2a2a] p-6 rounded-xl shadow-sm relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-16 h-16 bg-[#4ade80]/10 rounded-bl-full flex items-start justify-end p-3"><svg class="w-6 h-6 text-[#4ade80]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg></div>
+                    <h3 class="text-gray-400 text-sm font-medium mb-1">Total Emails Dispatched</h3>
+                    <div class="text-3xl font-bold tracking-tight" id="email-total">0</div>
+                </div>
+                <div class="bg-[#111] border border-[#2a2a2a] p-6 rounded-xl shadow-sm relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-16 h-16 bg-[#3b82f6]/10 rounded-bl-full flex items-start justify-end p-3"><svg class="w-6 h-6 text-[#3b82f6]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg></div>
+                    <h3 class="text-gray-400 text-sm font-medium mb-1">EMI Links Sent</h3>
+                    <div class="text-3xl font-bold tracking-tight text-white" id="email-emi">0</div>
+                </div>
+                <div class="bg-[#111] border border-[#2a2a2a] p-6 rounded-xl shadow-sm relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-16 h-16 bg-[#f59e0b]/10 rounded-bl-full flex items-start justify-end p-3"><svg class="w-6 h-6 text-[#f59e0b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
+                    <h3 class="text-gray-400 text-sm font-medium mb-1">Payment Reminders</h3>
+                    <div class="text-3xl font-bold tracking-tight text-white" id="email-reminders">0</div>
+                </div>
+            </div>
+
+            <div class="bg-[#111] border border-[#2a2a2a] rounded-xl shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-[#2a2a2a] bg-[#161616]">
+                    <h3 class="font-semibold text-gray-200">Recent Dispatches</h3>
+                </div>
+                <div class="divide-y divide-[#2a2a2a]" id="email-feed">
+                    <!-- Email logs go here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Data Sources Tab -->
+        <div id="tab-datasources" class="hidden max-w-5xl">
+            
+            <div class="bg-[#4a2e00] text-[#fbbf24] px-4 py-2.5 rounded flex items-center font-medium text-sm mb-8">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                Synthetic test dataset • 60 transactions • realistic failure distribution
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-100 mb-6 tracking-wide">Connected sources</h3>
+            
+            <div class="grid grid-cols-2 gap-x-12 gap-y-8 mb-12">
+                <!-- Source 1 -->
+                <div class="flex items-start justify-between">
+                    <div class="flex items-start gap-4">
+                        <svg class="w-6 h-6 text-gray-400 mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                        <div>
+                            <div class="font-bold text-gray-200">transactions</div>
+                            <div class="text-sm text-gray-500">MySQL table • 60 rows</div>
+                        </div>
+                    </div>
+                    <span id="status-transactions" class="text-[#22c55e] text-sm font-medium">Connected</span>
+                </div>
+                
+                <!-- Source 2 -->
+                <div class="flex items-start justify-between">
+                    <div class="flex items-start gap-4">
+                        <svg class="w-6 h-6 text-gray-400 mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                        <div>
+                            <div class="font-bold text-gray-200">customers</div>
+                            <div class="text-sm text-gray-500">MySQL table • LTV tier lookups</div>
+                        </div>
+                    </div>
+                    <span id="status-customers" class="text-[#22c55e] text-sm font-medium">Connected</span>
+                </div>
+
+                <!-- Source 3 -->
+                <div class="flex items-start justify-between">
+                    <div class="flex items-start gap-4">
+                        <svg class="w-6 h-6 text-gray-400 mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                        <div>
+                            <div class="font-bold text-gray-200">audit_logs</div>
+                            <div class="text-sm text-gray-500">MySQL table • append-only</div>
+                        </div>
+                    </div>
+                    <span id="status-audit_logs" class="text-[#22c55e] text-sm font-medium">Connected</span>
+                </div>
+
+                <!-- Source 4 -->
+                <div class="flex items-start justify-between">
+                    <div class="flex items-start gap-4">
+                        <svg class="w-6 h-6 text-gray-400 mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                        <div>
+                            <div class="font-bold text-gray-200">Gemini API</div>
+                            <div class="text-sm text-gray-500">External API • diagnosis engine</div>
+                        </div>
+                    </div>
+                    <span id="status-gemini" class="text-[#22c55e] text-sm font-medium">Connected</span>
+                </div>
+
+                <!-- Source 5 -->
+                <div class="flex items-start justify-between">
+                    <div class="flex items-start gap-4">
+                        <svg class="w-6 h-6 text-gray-400 mt-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        <div>
+                            <div class="font-bold text-gray-200">SMTP (Gmail)</div>
+                            <div class="text-sm text-gray-500">External API • email dispatch</div>
+                        </div>
+                    </div>
+                    <span id="status-smtp" class="text-[#22c55e] text-sm font-medium">Connected</span>
+                </div>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-100 mb-6 tracking-wide">Schema preview</h3>
+            
+            <div class="grid grid-cols-3 gap-8">
+                <!-- Schema 1 -->
+                <div>
+                    <h4 class="font-bold text-gray-200 font-mono mb-4 text-[15px]">transactions</h4>
+                    <div class="text-gray-400 font-mono text-sm leading-8 flex flex-col">
+                        <span>txn_id</span>
+                        <span>customer_id</span>
+                        <span>amount</span>
+                        <span>status</span>
+                        <span>failure_reason</span>
+                        <span>created_at</span>
+                    </div>
+                </div>
+                
+                <!-- Schema 2 -->
+                <div>
+                    <h4 class="font-bold text-gray-200 font-mono mb-4 text-[15px]">customers</h4>
+                    <div class="text-gray-400 font-mono text-sm leading-8 flex flex-col">
+                        <span>customer_id</span>
+                        <span>name</span>
+                        <span>email</span>
+                        <span>phone</span>
+                        <span>lifetime_value</span>
+                    </div>
+                </div>
+
+                <!-- Schema 3 -->
+                <div>
+                    <h4 class="font-bold text-gray-200 font-mono mb-4 text-[15px]">audit_logs</h4>
+                    <div class="text-gray-400 font-mono text-sm leading-8 flex flex-col">
+                        <span>log_id</span>
+                        <span>txn_id</span>
+                        <span>action_taken</span>
+                        <span>ai_reasoning</span>
+                        <span>created_at</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="tab-settings" class="hidden max-w-4xl">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-3xl font-bold tracking-tight">Agent configuration</h2>
+                <svg class="w-6 h-6 text-gray-500 cursor-pointer hover:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"></path></svg>
+            </div>
+
+            <div class="space-y-6">
+                <div class="flex items-center justify-between py-4 border-b border-[#2a2a2a]">
+                    <span class="text-gray-200 font-medium">Max retry attempts per transaction</span>
+                    <input type="number" id="input-max-retries" value="3" class="bg-[#1a1a1a] border border-[#333] text-white px-4 py-2 rounded-lg w-24 text-right focus:outline-none focus:border-gray-500">
+                </div>
+                
+                <div class="flex items-center justify-between py-4 border-b border-[#2a2a2a]">
+                    <span class="text-gray-200 font-medium">Cooldown between retries (hours)</span>
+                    <input type="number" id="input-cooldown" value="24" class="bg-[#1a1a1a] border border-[#333] text-white px-4 py-2 rounded-lg w-24 text-right focus:outline-none focus:border-gray-500">
+                </div>
+                
+                <div class="flex items-center justify-between py-4 border-b border-[#2a2a2a]">
+                    <span class="text-gray-200 font-medium">Max reminder emails per customer</span>
+                    <input type="number" id="input-max-reminders" value="2" class="bg-[#1a1a1a] border border-[#333] text-white px-4 py-2 rounded-lg w-24 text-right focus:outline-none focus:border-gray-500">
+                </div>
+
+                <div class="flex items-center justify-between py-4 border-b border-[#2a2a2a]">
+                    <span class="text-gray-200 font-medium">Fraud auto-halt confidence threshold</span>
+                    <span class="text-gray-300 mr-2">85%</span>
+                </div>
+                
+                <div class="flex items-center justify-between py-4 border-b border-[#2a2a2a]">
+                    <span class="text-gray-200 font-medium">High-LTV threshold for EMI bypass</span>
+                    <input type="number" id="input-high-ltv" value="25000" class="bg-[#1a1a1a] border border-[#333] text-white px-4 py-2 rounded-lg w-32 text-right focus:outline-none focus:border-gray-500">
+                </div>
+            </div>
+
+            <h3 class="text-lg font-bold text-gray-100 mt-12 mb-6 tracking-wide">Notifications</h3>
+            <div class="space-y-6">
+                <div class="flex items-center justify-between py-4 border-b border-[#2a2a2a]">
+                    <span class="text-gray-200 font-medium">Email notifications</span>
+                    <span class="text-[#22c55e] font-medium bg-[#22c55e]/10 px-3 py-1 rounded-full text-sm">Enabled</span>
+                </div>
+                <div class="flex items-center justify-between py-4 border-b border-[#2a2a2a]">
+                    <span class="text-gray-200 font-medium">Sender address</span>
+                    <span class="text-gray-400 font-mono text-sm">r***@gmail.com</span>
+                </div>
+                <div class="flex items-center justify-between py-4 border-b border-[#2a2a2a]">
+                    <span class="text-gray-200 font-medium">CC ops team on failed sends</span>
+                    <span class="text-gray-500 font-medium bg-[#2a2a2a] px-3 py-1 rounded-full text-sm border border-[#333]">Disabled</span>
+                </div>
+            </div>
+            
+            <h3 class="text-lg font-bold text-gray-100 mt-12 mb-6 tracking-wide">AI model</h3>
+            <div class="space-y-6">
+                <div class="flex items-center justify-between py-4 border-b border-[#2a2a2a]">
+                    <span class="text-gray-200 font-medium">Diagnosis model</span>
+                    <span class="text-gray-300">Gemini 2.x</span>
+                </div>
+                <div class="flex items-center justify-between py-4 border-b border-[#2a2a2a]">
+                    <span class="text-gray-200 font-medium">Confidence threshold to auto-act</span>
+                    <span class="text-gray-300">90%</span>
+                </div>
+            </div>
+            
+            <h3 class="text-lg font-bold text-gray-100 mt-12 mb-6 tracking-wide">Team access</h3>
+            <div class="space-y-6 mb-12">
+                <div class="flex items-center justify-between py-4 border-b border-[#2a2a2a]">
+                    <span class="text-gray-200 font-medium">You</span>
+                    <span class="text-gray-400">Admin</span>
+                </div>
+                <div class="flex items-center justify-between py-4 border-b border-[#2a2a2a]">
+                    <span class="text-gray-200 font-medium">ops.team@razorpay.com</span>
+                    <span class="text-gray-400">Viewer</span>
+                </div>
+            </div>
+            
+            <div class="mt-8 flex justify-end">
+                <button onclick="saveSettings()" class="bg-[#22c55e] hover:bg-[#16a34a] text-white font-medium py-2 px-6 rounded-lg transition-colors">
+                    Save changes
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Tab Switching Logic -->
+    <script>
+        function switchTab(tabId, event) {
+            if(event) {
+                event.preventDefault();
+            }
+
+            // Hide all main content tabs
+            document.getElementById('tab-overview').classList.add('hidden');
+            document.getElementById('tab-audit-trail').classList.add('hidden');
+            document.getElementById('tab-guardrails').classList.add('hidden');
+            document.getElementById('tab-pipeline').classList.add('hidden');
+            document.getElementById('tab-emails').classList.add('hidden');
+            document.getElementById('tab-datasources').classList.add('hidden');
+            document.getElementById('tab-settings').classList.add('hidden');
+            
+            // Reset all sidebar links
+            const navOverview = document.getElementById('nav-overview');
+            const navAudit = document.getElementById('nav-audit-trail');
+            const navGuardrails = document.getElementById('nav-guardrails');
+            const navPipeline = document.getElementById('nav-pipeline');
+            const navEmails = document.getElementById('nav-emails');
+            const navData = document.getElementById('nav-datasources');
+            const navSettings = document.getElementById('nav-settings');
+            
+            // Reset styles function
+            const resetNav = (nav) => {
+                if(!nav) return;
+                nav.className = 'flex items-center px-4 py-3 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-lg transition-colors';
+                nav.querySelector('span').className = 'text-[15px]';
+                nav.querySelector('svg').className = 'w-5 h-5 mr-3 opacity-70';
+            };
+
+            resetNav(navOverview);
+            resetNav(navAudit);
+            resetNav(navGuardrails);
+            resetNav(navPipeline);
+            resetNav(navEmails);
+            resetNav(navData);
+            resetNav(navSettings);
+            
+            // Show the selected tab content
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            
+            // Highlight the active sidebar link
+            const activeNav = document.getElementById('nav-' + tabId);
+            activeNav.className = 'flex items-center px-4 py-3 bg-[#383838] text-white rounded-lg shadow-sm';
+            activeNav.querySelector('span').className = 'font-medium text-[15px]';
+            activeNav.querySelector('svg').className = 'w-5 h-5 mr-3 text-gray-300';
+        }
+
+        // Pipeline interaction logic
+        function revealNextStage(nextStage) {
+            const arrow = document.getElementById(`pipe-arrow-${nextStage}`);
+            const stage = document.getElementById(`pipe-stage-${nextStage}`);
+            
+            if (arrow) {
+                arrow.classList.remove('opacity-0');
+                arrow.classList.add('opacity-100');
+            }
+            if (stage) {
+                stage.classList.remove('opacity-0');
+                stage.classList.add('opacity-100');
+                
+                // Scroll the parent container smoothly
+                setTimeout(() => {
+                    stage.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }, 100); // slight delay to allow rendering
+            }
+        }
+    </script>
+    <!-- Include dynamic data script -->
+    <script src="script.js"></script>
+</body>
+</html>
