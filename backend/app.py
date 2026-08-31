@@ -166,6 +166,11 @@ def run_revenue_recovery_agent():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
+    # Reset database state on startup so dashboard only shows current run
+    cursor.execute("TRUNCATE TABLE audit_logs")
+    cursor.execute("UPDATE transactions SET status = 'failed'")
+    conn.commit()
+
     cursor.execute("""
         SELECT t.txn_id, t.amount, t.failure_reason, c.customer_id, c.name, c.email, c.lifetime_value 
         FROM transactions t
